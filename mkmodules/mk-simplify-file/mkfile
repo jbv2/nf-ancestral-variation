@@ -1,0 +1,17 @@
+MKSHELL=/bin/bash
+
+%.filtered.txt:Q: %.split
+	echo "[DEBUG] Removing duplicates"
+	head -n+1 $prereq > $target
+	tail -n+2 $prereq | sort -u | awk 'a !~ $1; {a=$1}' >> $target \
+	&& rm $prereq
+
+%.split:Q: %.tmp
+	echo "[DEBUG] Splitting consequence"
+	Rscript --vanilla filter.R $prereq $target \
+	&& rm $prereq
+
+%.tmp:Q: %.txt
+	echo "[DEBUG] filtering columns of VEP file from $prereq"
+	#Extracting only coding variants
+	cut -f 1-7,16-20,22,27-46,70,71,77,139-141,199-202,203-205 $prereq | sed "s#\###" > $target

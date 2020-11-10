@@ -1,0 +1,155 @@
+MKSHELL=/bin/bash
+
+%.vcf.gz:Q: %.sorted.vcf.gz
+	echo "[DEBUG] Normalizing vcf with ref"
+	bcftools norm \
+	--check-ref s -f $FASTA_REFERENCE \
+	$prereq \
+	| bgzip > $target \
+	&& rm $prereq*
+
+%.sorted.vcf.gz:Q: %.tmp.vcf
+	echo "[DEBUG] Sorting"
+	bcftools sort $prereq | bgzip > $target \
+	&& rm $prereq
+
+%.tmp.vcf:Q: %.bed
+	echo "[DEBUG] Converting $prereq to tmp vcf format"
+	echo "##fileformat=VCFv4.1
+	##FILTER=<ID=PASS,Description="All filters passed">
+	##FILTER=<ID=LowQual,Description="Low quality">
+	##ALT=<ID=NON_REF,Description="Represents any possible alternative allele at this location">
+	##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality">
+	##contig=<ID=1,length=249250621>
+	##contig=<ID=10,length=135534747>
+	##contig=<ID=11,length=135006516>
+	##contig=<ID=12,length=133851895>
+	##contig=<ID=13,length=115169878>
+	##contig=<ID=14,length=107349540>
+	##contig=<ID=15,length=102531392>
+	##contig=<ID=16,length=90354753>
+	##contig=<ID=17,length=81195210>
+	##contig=<ID=18,length=78077248>
+	##contig=<ID=19,length=59128983>
+	##contig=<ID=2,length=243199373>
+	##contig=<ID=20,length=63025520>
+	##contig=<ID=21,length=48129895>
+	##contig=<ID=22,length=51304566>
+	##contig=<ID=3,length=198022430>
+	##contig=<ID=4,length=191154276>
+	##contig=<ID=5,length=180915260>
+	##contig=<ID=6,length=171115067>
+	##contig=<ID=7,length=159138663>
+	##contig=<ID=8,length=146364022>
+	##contig=<ID=9,length=141213431>
+	##contig=<ID=MT,length=16569>
+	##contig=<ID=X,length=155270560>
+	##contig=<ID=Y,length=59373566>
+	##contig=<ID=GL000192.1,length=547496>
+	##contig=<ID=GL000193.1,length=189789>
+	##contig=<ID=GL000194.1,length=191469>
+	##contig=<ID=GL000195.1,length=182896>
+	##contig=<ID=GL000196.1,length=38914>
+	##contig=<ID=GL000197.1,length=37175>
+	##contig=<ID=GL000198.1,length=90085>
+	##contig=<ID=GL000199.1,length=169874>
+	##contig=<ID=GL000200.1,length=187035>
+	##contig=<ID=GL000201.1,length=36148>
+	##contig=<ID=GL000202.1,length=40103>
+	##contig=<ID=GL000203.1,length=37498>
+	##contig=<ID=GL000204.1,length=81310>
+	##contig=<ID=GL000205.1,length=174588>
+	##contig=<ID=GL000206.1,length=41001>
+	##contig=<ID=GL000207.1,length=4262>
+	##contig=<ID=GL000208.1,length=92689>
+	##contig=<ID=GL000209.1,length=159169>
+	##contig=<ID=GL000210.1,length=27682>
+	##contig=<ID=GL000211.1,length=166566>
+	##contig=<ID=GL000212.1,length=186858>
+	##contig=<ID=GL000213.1,length=164239>
+	##contig=<ID=GL000214.1,length=137718>
+	##contig=<ID=GL000215.1,length=172545>
+	##contig=<ID=GL000216.1,length=172294>
+	##contig=<ID=GL000217.1,length=172149>
+	##contig=<ID=GL000218.1,length=161147>
+	##contig=<ID=GL000219.1,length=179198>
+	##contig=<ID=GL000220.1,length=161802>
+	##contig=<ID=GL000221.1,length=155397>
+	##contig=<ID=GL000222.1,length=186861>
+	##contig=<ID=GL000223.1,length=180455>
+	##contig=<ID=GL000224.1,length=179693>
+	##contig=<ID=GL000225.1,length=211173>
+	##contig=<ID=GL000226.1,length=15008>
+	##contig=<ID=GL000227.1,length=128374>
+	##contig=<ID=GL000228.1,length=129120>
+	##contig=<ID=GL000229.1,length=19913>
+	##contig=<ID=GL000230.1,length=43691>
+	##contig=<ID=GL000231.1,length=27386>
+	##contig=<ID=GL000232.1,length=40652>
+	##contig=<ID=GL000233.1,length=45941>
+	##contig=<ID=GL000234.1,length=40531>
+	##contig=<ID=GL000235.1,length=34474>
+	##contig=<ID=GL000236.1,length=41934>
+	##contig=<ID=GL000237.1,length=45867>
+	##contig=<ID=GL000238.1,length=39939>
+	##contig=<ID=GL000238.1,length=39939>
+	##contig=<ID=GL000239.1,length=33824>
+	##contig=<ID=GL000240.1,length=41933>
+	##contig=<ID=GL000241.1,length=42152>
+	##contig=<ID=GL000242.1,length=43523>
+	##contig=<ID=GL000243.1,length=43341>
+	##contig=<ID=GL000244.1,length=39929>
+	##contig=<ID=GL000245.1,length=36651>
+	##contig=<ID=GL000246.1,length=38154>
+	##contig=<ID=GL000247.1,length=36422>
+	##contig=<ID=GL000248.1,length=39786>
+	##contig=<ID=GL000249.1,length=38502>
+	##reference=file:///mnt/solexa/Genomes/hg19_1000g/whole_genome.fa
+	##INFO=<ID=ANN,Number=.,Type=String,Description="Annotations from VEP. Format: Consequence\|SYMBOL\|Gene\|CDS_position\|Protein_position\|Amino_acids\|Codons\|SIFT\|PolyPhen\|AF\|AFR_AF\|AMR_AF\|EAS_AF\|EUR_AF\|SAS_AF\|AA_AF\|EA_AF\|gnomAD_AF\|gnomAD_AFR_AF\|gnomAD_AMR_AF\|gnomAD_ASJ_AF\|gnomAD_EAS_AF\|gnomAD_FIN_AF\|gnomAD_NFE_AF\|gnomAD_OTH_AF\|gnomAD_SAS_AF\|CLIN_SIG\|AltaiNeandertal\|Ancestral_allele\|Denisovan\|GERP_NR\|GERP_RS\|GER_RS_rankscore\|clinvar_clnsig\|clinvar_golden_stars\|clinvar_rs\|clinvar_trait\|Pos_grch38\|BED_Score\|BED_strand" >
+	##INFO=<ID=Consequence,Number=.,Type=String,Description="Consequence of variation">
+	##INFO=<ID=SYMBOL,Number=.,Type=String,Description="SYMBOL of gen">
+	##INFO=<ID=Gene,Number=.,Type=String,Description="SYMBOL of gen">
+	##INFO=<ID=CDS_position,Number=.,Type=String,Description="Position in CDS">
+	##INFO=<ID=Protein_position,Number=.,Type=String,Description="Position in protein">
+	##INFO=<ID=Amino_acids,Number=.,Type=String,Description="AA variation">
+	##INFO=<ID=Codons,Number=.,Type=String,Description="Codons variation">
+	##INFO=<ID=SIFT,Number=.,Type=String,Description="SIFT score">
+	##INFO=<ID=PolyPhen,Number=.,Type=String,Description="PolyPhen score">
+	##INFO=<ID=AF,Number=.,Type=String,Description="AF 1000g">
+	##INFO=<ID=AFR_AF,Number=.,Type=String,Description="AFR AF 1000g">
+	##INFO=<ID=AMR_AF,Number=.,Type=String,Description="AMR AF 1000g">
+	##INFO=<ID=EAS_AF,Number=.,Type=String,Description="EAS AF 1000g">
+	##INFO=<ID=EUR_AF,Number=.,Type=String,Description="EUR AF 1000g">
+	##INFO=<ID=SAS_AF,Number=.,Type=String,Description="SAS AF 1000g">
+	##INFO=<ID=AA_AF,Number=.,Type=String,Description="AA AF 1000g">
+	##INFO=<ID=EA_AF,Number=.,Type=String,Description="EA AF 1000g">
+	##INFO=<ID=gnomAD_AF,Number=.,Type=String,Description="gnomAD AF">
+	##INFO=<ID=gnomAD_AFR_AF,Number=.,Type=String,Description="AFR AF gnomAD">
+	##INFO=<ID=gnomAD_AMR_AF,Number=.,Type=String,Description="AMR AF gnomAD">
+	##INFO=<ID=gnomAD_ASJ_AF,Number=.,Type=String,Description="ASJ AF gnomAD">
+	##INFO=<ID=gnomAD_EAS_AF,Number=.,Type=String,Description="EAS AF gnomAD">
+	##INFO=<ID=gnomAD_FIN_AF,Number=.,Type=String,Description="FIN AF gnomAD">
+	##INFO=<ID=gnomAD_NFE_AF,Number=.,Type=String,Description="NFE AF gnomAD">
+	##INFO=<ID=gnomAD_OTH_AF,Number=.,Type=String,Description="OTH AF gnomAD">
+	##INFO=<ID=gnomAD_SAS_AF,Number=.,Type=String,Description="SAS AF gnomAD">
+	##INFO=<ID=CLIN_SIG,Number=.,Type=String,Description="Clinical significance">
+	##INFO=<ID=AltaiNeandertal,Number=.,Type=String,Description="AltaiNeandertal allele">
+	##INFO=<ID=DANN_score,Number=.,Type=String,Description="DANN_score">
+	##INFO=<ID=GERP.._NR,Number=.,Type=String,Description="GERP.._NR">
+	##INFO=<ID=GERP.._RS,Number=.,Type=String,Description="GERP.._RS">
+	##INFO=<ID=GERP.._RS_rankscore,Number=.,Type=String,Description="GERP.._RS_rankscore">
+	##INFO=<ID=clinvar_clnsig,Number=.,Type=String,Description="clinvar significance">
+	##INFO=<ID=clinvar_golden_stars,Number=.,Type=String,Description="clinvar stars">
+	##INFO=<ID=clinvar_rs,Number=.,Type=String,Description="clinvar_rs">
+	##INFO=<ID=clinvar_trait,Number=.,Type=String,Description="clinvar trait">
+	##INFO=<ID=38pos,Number=.,Type=String,Description="chr and pos in 38v">
+	##INFO=<ID=BED_Score,Number=.,Type=String,Description="bed score">
+	##INFO=<ID=BED_strand,Number=.,Type=String,Description="bed strand">" > $target \
+	&& echo "#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT" | tr " " "\t" >> $target \
+	&& cut --complement -f2 $prereq \
+	| awk ' BEGIN{FS=OFS="\t"}{print $1,$2,$11,".",$3,".",".","ANN=",$0}' \
+	| cut --complement -f9-11,19,20 \
+	| sed "s#=\t#=#" \
+	| sed "s#\t#|#8g" \
+	| awk 'BEGIN{FS=OFS="\t"}{print $0,$NF="."}1' \
+	| egrep -v "*random* | *gl_*" >> $target

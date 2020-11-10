@@ -1,0 +1,13 @@
+dMKSHELL=/bin/bash
+
+%.genehancer.tsv:Q: %.vcf.gz
+	echo "[DEBUG] Getting alleles in GeneHancers"
+	lines=$(bcftools view -H $prereq | wc -l)
+	if [ $lines -ge 1 ]
+	then
+	echo "CHROM|POS|ID|REF|ALT|QUAL|FILTER|Consequence|SYMBOL|Gene|CDS_position|Protein_position|Amino_acids|Codons|SIFT|PolyPhen|AF|AFR_AF|AMR_AF|EAS_AF|EUR_AF|SAS_AF|AA_AF|EA_AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_ASJ_AF|gnomAD_EAS_AF|gnomAD_FIN_AF|gnomAD_NFE_AF|gnomAD_OTH_AF|gnomAD_SAS_AF|CLIN_SIG|AltaiNeandertal|Ancestral_allele|Denisovan|GERP_NR|GERP_RS|GER_RS_rankscore|clinvar_clnsig|clinvar_golden_stars|clinvar_rs|clinvar_trait|Pos_grch38|BED_Score|BED_strand|CHR_GeneHancer|Start_GeneHancer|End_GeneHancer|Genehancer" | tr "|" "\t" > $stem.tmp
+	bedtools intersect -a $prereq -b $GENEHANCER -wa -wb | awk ' BEGIN {FS=OFS="\t"} $8!="." {print $0}' | tr "|" "\t" | sed "s#ANN=##" >> $stem.tmp
+	Rscript --vanilla table_maker.R $stem.tmp $target
+	else
+	touch $target
+	fi

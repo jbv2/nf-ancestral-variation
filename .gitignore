@@ -13,6 +13,8 @@ work*
 
 ## Ignore test subdirectories from mkmodules
 mkmodules/*/test/results/*
+mkmodules/*/neandertal_denisovan_chimpance/README.txt
+mkmodules/mk-intersect/neandertal_denisovan_chimpance/*
 
 ## ignore intermediate and logs from tests
 test/data/*/intermediate/
@@ -35,6 +37,5 @@ test/*/results
 
 ## ignore references
 test/reference/Hg19new.fa.gz*
-test/reference/hg38ToHg19.over.chain.gz
 test/reference/Ancestral/*.vcf.gz*
 test/reference/Ancestral/hg38ToHg19.over.chain.gz
