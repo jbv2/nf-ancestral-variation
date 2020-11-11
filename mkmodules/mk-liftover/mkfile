@@ -1,0 +1,9 @@
+MKSHELL=/bin/bash
+
+%.liftover.bed:Q: %.bed
+	echo "[DEBUG] Making liftover from Hg38 to Hg19 of $prereq"
+	liftOver $prereq $CHAIN $target.build $target.unMapped.build
+	cat $target.build | tr "|" "\t" | sed "s#chr##" > $target \
+	&& rm $target.build
+	cat $target.unMapped.build | tr "|" "\t" | sed "s#chr##" > $target.unMapped \
+	&& rm $target.unMapped.build

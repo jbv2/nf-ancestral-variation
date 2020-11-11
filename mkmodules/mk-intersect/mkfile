@@ -1,0 +1,118 @@
+MKSHELL=/bin/bash
+
+%.tsv:: %.liftover.vcf.gz
+	echo "[DEBUG] Intersecting with $NEANDERTAL_VCF, $DENISOVAN_VCF and $CHIMPANCE_VCF"
+	tabix -p vcf $prereq \
+	&& bcftools isec -p ./neandertal $prereq $NEANDERTAL_VCF \
+	&& mv ./neandertal/0000.vcf ./neandertal/neandertal_not_intersected.vcf \
+	&& bgzip ./neandertal/neandertal_not_intersected.vcf \
+	&& tabix -p vcf ./neandertal/neandertal_not_intersected.vcf.gz \
+	&& mv ./neandertal/0002.vcf ./neandertal/neandertal_intersected.vcf \
+	&& bgzip ./neandertal/neandertal_intersected.vcf \
+	&& tabix -p vcf ./neandertal/neandertal_intersected.vcf.gz \
+	&& bcftools isec \
+	-p ./denisovan \
+	$prereq \
+	$DENISOVAN_VCF \
+	&& mv ./denisovan/0000.vcf ./denisovan/denisovan_not_intersected.vcf \
+	&& bgzip ./denisovan/denisovan_not_intersected.vcf \
+	&& tabix -p vcf ./denisovan/denisovan_not_intersected.vcf.gz \
+	&& mv ./denisovan/0002.vcf ./denisovan/denisovan_intersected.vcf \
+	&& bgzip ./denisovan/denisovan_intersected.vcf \
+	&& tabix -p vcf ./denisovan/denisovan_intersected.vcf.gz \
+	&& bcftools isec \
+	-p ./neandertal_denisovan \
+	./neandertal/neandertal_intersected.vcf.gz \
+	./denisovan/denisovan_intersected.vcf.gz \
+	&& mv ./neandertal_denisovan/0002.vcf ./neandertal_denisovan/neandertal_denisovan_intersected.vcf \
+	&& bgzip ./neandertal_denisovan/neandertal_denisovan_intersected.vcf \
+	&& tabix -p vcf ./neandertal_denisovan/neandertal_denisovan_intersected.vcf.gz \
+	&& bcftools isec \
+	-p ./neandertal_denisovan \
+	./neandertal/neandertal_not_intersected.vcf.gz \
+	./denisovan/denisovan_not_intersected.vcf.gz \
+	&& mv ./neandertal_denisovan/0002.vcf ./neandertal_denisovan/neandertal_denisovan_not_intersected.vcf \
+	&& bgzip ./neandertal_denisovan/neandertal_denisovan_not_intersected.vcf \
+	&& tabix -p vcf ./neandertal_denisovan/neandertal_denisovan_not_intersected.vcf.gz \
+	&& bcftools isec \
+	-p ./neandertal_denisovan_chimpance \
+	$prereq \
+	$CHIMPANCE_VCF \
+	&& echo "Chimpance $(bcftools view -H "./neandertal_denisovan_chimpance/0002.vcf" | wc -l)" > $target \
+	&& mv ./neandertal_denisovan_chimpance/0002.vcf ./neandertal_denisovan_chimpance/chimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/chimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/chimpance.vcf.gz \
+	&& bcftools isec \
+	-p ./neandertal_denisovan_chimpance \
+	./neandertal/neandertal_not_intersected.vcf.gz \
+	./neandertal_denisovan_chimpance/chimpance.vcf.gz \
+	&& echo "NoNeandertal $(bcftools view -H "./neandertal_denisovan_chimpance/0000.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0000.vcf ./neandertal_denisovan_chimpance/noneandertal_nochimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/noneandertal_nochimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/noneandertal_nochimpance.vcf.gz \
+	&& echo "NoNeandertal&Chimpance $(bcftools view -H "./neandertal_denisovan_chimpance/0002.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0002.vcf ./neandertal_denisovan_chimpance/noneandertal_chimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/noneandertal_chimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/noneandertal_chimpance.vcf.gz \
+	&& bcftools isec \
+	-p ./neandertal_denisovan_chimpance \
+	./neandertal/neandertal_intersected.vcf.gz \
+	./neandertal_denisovan_chimpance/chimpance.vcf.gz \
+	&& echo "Neandertal $(bcftools view -H "./neandertal_denisovan_chimpance/0000.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0000.vcf ./neandertal_denisovan_chimpance/neandertal_nochimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/neandertal_nochimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/neandertal_nochimpance.vcf.gz \
+	&& echo "Neandertal&Chimpance $(bcftools view -H "./neandertal_denisovan_chimpance/0002.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0002.vcf ./neandertal_denisovan_chimpance/neandertal_chimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/neandertal_chimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/neandertal_chimpance.vcf.gz \
+	&& bcftools isec \
+	-p ./neandertal_denisovan_chimpance \
+	./denisovan/denisovan_not_intersected.vcf.gz \
+	./neandertal_denisovan_chimpance/chimpance.vcf.gz \
+	&& echo "NoDenisovan $(bcftools view -H "./neandertal_denisovan_chimpance/0000.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0000.vcf ./neandertal_denisovan_chimpance/nodenisovan_nochimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/nodenisovan_nochimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/nodenisovan_nochimpance.vcf.gz \
+	&& echo "NoDenisovan&Chimpance $(bcftools view -H "./neandertal_denisovan_chimpance/0002.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0002.vcf ./neandertal_denisovan_chimpance/nodenisovan_chimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/nodenisovan_chimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/nodenisovan_chimpance.vcf.gz \
+	&& bcftools isec \
+	-p ./neandertal_denisovan_chimpance \
+	./denisovan/denisovan_intersected.vcf.gz \
+	./neandertal_denisovan_chimpance/chimpance.vcf.gz \
+	&& echo "Denisovan $(bcftools view -H "./neandertal_denisovan_chimpance/0000.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0000.vcf ./neandertal_denisovan_chimpance/denisovan_nochimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/denisovan_nochimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/denisovan_nochimpance.vcf.gz \
+	&& echo "Denisovan&Chimpance $(bcftools view -H "./neandertal_denisovan_chimpance/0002.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0002.vcf ./neandertal_denisovan_chimpance/denisovan_chimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/denisovan_chimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/denisovan_chimpance.vcf.gz \
+	&& bcftools isec \
+	-p ./neandertal_denisovan_chimpance \
+	./neandertal_denisovan/neandertal_denisovan_intersected.vcf.gz \
+	./neandertal_denisovan_chimpance/chimpance.vcf.gz \
+	&& echo "Neandertal&Denisovan $(bcftools view -H "./neandertal_denisovan_chimpance/0000.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0000.vcf ./neandertal_denisovan_chimpance/neandertal_denisovan_nochimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/neandertal_denisovan_nochimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/neandertal_denisovan_nochimpance.vcf.gz \
+	&& echo "Neandertal&Denisovan&Chimpance $(bcftools view -H "./neandertal_denisovan_chimpance/0002.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0002.vcf ./neandertal_denisovan_chimpance/neandertal_denisovan_chimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/neandertal_denisovan_chimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/neandertal_denisovan_chimpance.vcf.gz \
+	&& bcftools isec \
+	-p ./neandertal_denisovan_chimpance \
+	./neandertal_denisovan/neandertal_denisovan_not_intersected.vcf.gz \
+	./neandertal_denisovan_chimpance/chimpance.vcf.gz \
+	&& rm ./neandertal_denisovan_chimpance/0001.vcf ./neandertal_denisovan_chimpance/0003.vcf \
+	&& echo "NoNeandertal&NoDenisovan $(bcftools view -H "./neandertal_denisovan_chimpance/0000.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0000.vcf ./neandertal_denisovan_chimpance/noneandertal_nodenisovan_nochimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/noneandertal_nodenisovan_nochimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/noneandertal_nodenisovan_nochimpance.vcf.gz \
+	&& echo "NoNeandertal&NoDenisovan&Chimpance $(bcftools view -H "./neandertal_denisovan_chimpance/0002.vcf" | wc -l)" >> $target \
+	&& mv ./neandertal_denisovan_chimpance/0002.vcf ./neandertal_denisovan_chimpance/noneandertal_nodenisovan_chimpance.vcf \
+	&& bgzip ./neandertal_denisovan_chimpance/noneandertal_nodenisovan_chimpance.vcf \
+	&& tabix -p vcf ./neandertal_denisovan_chimpance/noneandertal_nodenisovan_chimpance.vcf.gz \
+	&& rm -r ./neandertal && rm -r ./denisovan && rm -r ./neandertal_denisovan

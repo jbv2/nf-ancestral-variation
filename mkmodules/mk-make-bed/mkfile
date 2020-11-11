@@ -1,0 +1,27 @@
+MKSHELL=/bin/bash
+
+%.bed:Q: %.tmp
+	echo "[DEBUG] Reducing to 4 fields for liftover"
+	awk 'BEGIN {FS=OFS="\t"}
+	{ $2=$2-1 "\t" $2}1
+	' $prereq \
+	| sed "s#\t1\$#\t+#" \
+	| sed "s#\t-1\$#\t-#" \
+	> $target \
+	&& rm $prereq
+
+%.tmp:Q: %.txt
+	echo "[DEBUG]converting results to BED format from $prereq"
+	cat $prereq \
+	| sed "s#:#\t#" \
+	| sed "s#-[0-9]*.#\t#" \
+	| cut --complement -f1 \
+	| tail -n+2 \
+	| sed "s#^#chr#" \
+	| sed "s#MODIFIER#.#" \
+	| awk 'BEGIN {FS=OFS="\t"}
+		{$NF=$13; $(NF-1)=".tab"; $(NF-2)=$1"_"$2}1' \
+	| cut --complement -f5 \
+	| sed 's/\t/|/3g' \
+	| sed 's/|.tab|/\t.\t/' \
+	> $target
